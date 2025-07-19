@@ -26,6 +26,7 @@ const Game = () => {
   const [rematchRequested, setRematchRequested] = useState(false);
   const [showRematchPrompt, setShowRematchPrompt] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const inputRef = useRef(null);
 
   const { gameId } = useParams();
   const { user } = useAuth();
