@@ -90,7 +90,7 @@ const CreateGame = () => {
       </p>
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="shadow-lg backdrop-blur-sm text-gray-700 text-lg px-4 py-2 rounded font-mono break-all">
+        <div className="shadow-lg backdrop-blur-sm text-gray-700 text-sm px-4 py-2 rounded font-mono break-all">
           {gameId}
         </div>
         <button
