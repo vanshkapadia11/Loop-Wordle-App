@@ -33,6 +33,15 @@ const CreateGame = () => {
           status: "waiting",
           createdAt: new Date(),
         });
+        // 🧹 Delete if no one joins in 5 minutes
+        setTimeout(async () => {
+          const latestSnap = await getDoc(gameRef);
+          const gameData = latestSnap.data();
+          if (gameData?.players?.length < 2) {
+            await deleteDoc(gameRef);
+            console.log("Deleted unjoined game:", newGameId);
+          }
+        }, 300000); // 5 mins = 300,000 ms
 
         // Listen for opponent joining
         onSnapshot(gameRef, async (docSnap) => {
@@ -80,12 +89,12 @@ const CreateGame = () => {
       </p>
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="bg-gray-100 text-lg px-4 py-2 rounded font-mono break-all">
+        <div className="shadow-lg backdrop-blur-sm text-gray-700 text-lg px-4 py-2 rounded font-mono break-all">
           {gameId}
         </div>
         <button
           onClick={handleCopy}
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+          className="shadow-lg backdrop-blur-sm text-blue-600 px-3 py-2 rounded font-semibold text-sm uppercase"
         >
           {copied ? "Copied!" : "Copy"}
         </button>
@@ -96,7 +105,9 @@ const CreateGame = () => {
           👤 Opponent joined: {opponentName}
         </p>
       ) : (
-        <p className="text-gray-600 mt-2">Waiting for opponent to join...</p>
+        <p className="text-gray-600 mt-2 text-sm font-semibold uppercase">
+          Waiting for opponent to join...
+        </p>
       )}
 
       <div className="mt-4 animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>

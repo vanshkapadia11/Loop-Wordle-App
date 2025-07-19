@@ -268,11 +268,11 @@ const Game = () => {
         onChange={() => {}}
         onInput={handleInput}
       />
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800 uppercase">
         Multiplayer Wordle
       </h2>
-      <h3 className="text-center text-sm text-gray-500 mb-2">
-        Game ID: <span className="font-mono">{gameId}</span>
+      <h3 className="text-center text-sm text-gray-500 mb-2 uppercase">
+        Game ID: <span className="font-mono line-clamp-1">{gameId}</span>
       </h3>
 
       <div className="grid grid-cols-2 gap-6 mb-6">
@@ -280,7 +280,7 @@ const Game = () => {
           game.guesses &&
           Object.entries(game.guesses).map(([playerId, guesses]) => (
             <div key={playerId}>
-              <h3 className="font-semibold text-lg mb-3 text-center">
+              <h3 className="font-semibold text-base mb-3 text-center uppercase">
                 {playerId === user.uid
                   ? `🧑 You (${playerNames[playerId] || "You"})`
                   : `👤 Opponent (${playerNames[playerId] || "Opponent"})`}
@@ -329,7 +329,7 @@ const Game = () => {
       )}
 
       {message && (
-        <div className="text-center text-xl font-semibold text-red-600 mt-4">
+        <div className="text-center text-lg font-semibold text-red-600 mt-4 uppercase">
           {message}
         </div>
       )}
@@ -338,14 +338,14 @@ const Game = () => {
         <div className="mt-6 flex flex-col items-center gap-4">
           <button
             onClick={handleGoToMenu}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            className="shadow-lg backdrop-blur-sm text-gray-600 px-4 py-2 rounded uppercase"
           >
             Menu
           </button>
           {!rematchRequested && (
             <button
               onClick={handleRematch}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase"
             >
               Play Again
             </button>
@@ -356,22 +356,22 @@ const Game = () => {
         !game?.rematchRequest?.[
           game.players?.find((id) => id !== user.uid)
         ] && (
-          <div className="text-sm text-gray-500 mt-2">
+          <div className="text-sm text-gray-500 mt-2 font-semibold uppercase">
             Waiting for opponent to accept rematch...
           </div>
         )}
       {showRematchPrompt && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow max-w-sm text-center">
-            <p className="text-lg mb-4 font-semibold">
+            <p className="text-base mb-4 font-semibold uppercase">
               Opponent wants to play again!
             </p>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 mb-4 uppercase font-semibold">
               Respond in {countdown} seconds...
             </p>
             <button
               onClick={handleRematch}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase"
             >
               Play Again
             </button>
