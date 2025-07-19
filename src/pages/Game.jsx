@@ -37,20 +37,27 @@ const Game = () => {
   const [message, setMessage] = useState("");
   const [gameOver, setGameOver] = useState(false);
 
-  useEffect(() => {
-    const input = inputRef.current;
-    if (input) {
-      input.focus(); // focus on mount
+  const handleInput = (e) => {
+    const key = e.nativeEvent.data?.toLowerCase();
+    if (!key || gameOver) return;
+
+    if (key === "enter" && currentGuess.length === 5) {
+      submitGuess();
+    } else if (key === "backspace") {
+      setCurrentGuess((prev) => prev.slice(0, -1));
+    } else if (/^[a-z]$/.test(key) && currentGuess.length < 5) {
+      setCurrentGuess((prev) => prev + key);
     }
 
-    const handleTouch = () => {
-      input?.focus(); // refocus on mobile touch
-    };
+    e.target.value = ""; // clear input buffer
+  };
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input) input.focus();
 
+    const handleTouch = () => input?.focus();
     window.addEventListener("touchstart", handleTouch);
-    return () => {
-      window.removeEventListener("touchstart", handleTouch);
-    };
+    return () => window.removeEventListener("touchstart", handleTouch);
   }, []);
 
   // ✅ Reset state when new gameId comes in (important for rematch)
@@ -218,19 +225,7 @@ const Game = () => {
         autoCorrect="off"
         className="absolute opacity-0 pointer-events-none w-0 h-0"
         onChange={() => {}}
-        onInput={(e) => {
-          const key = e.nativeEvent.data?.toLowerCase();
-
-          if (!key || isGameOver) return;
-
-          if (key === "enter") {
-            handleSubmitGuess();
-          } else if (key === "backspace") {
-            setCurrentGuess((prev) => prev.slice(0, -1));
-          } else if (/^[a-z]$/.test(key) && currentGuess.length < 5) {
-            setCurrentGuess((prev) => prev + key);
-          }
-        }}
+        onInput={handleInput}
       />
       <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
         Multiplayer Wordle
