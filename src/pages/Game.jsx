@@ -12,6 +12,7 @@ import {
   setDoc,
   Timestamp,
 } from "firebase/firestore";
+import { deleteDoc } from "firebase/firestore";
 import { getRandomWord } from "../utils/getRandomWord";
 import { v4 as uuidv4 } from "uuid";
 
@@ -238,19 +239,36 @@ const Game = () => {
     }
 
     // ✅ Clean up ONLY if both navigated
+
+    // if (bothNavigated && user.uid === game.players[0]) {
+    //   const cleanup = async () => {
+    //     await updateDoc(doc(db, "games", gameId), {
+    //       rematchRequest: {},
+    //       nextGameId: null,
+    //       navigatedPlayers: {},
+    //     });
+    //   };
+    //   cleanup();
+    // }
     if (bothNavigated && user.uid === game.players[0]) {
       const cleanup = async () => {
-        await updateDoc(doc(db, "games", gameId), {
-          rematchRequest: {},
-          nextGameId: null,
-          navigatedPlayers: {},
-        });
+        try {
+          await deleteDoc(doc(db, "games", gameId));
+          console.log("Deleted previous game:", gameId);
+        } catch (err) {
+          console.error("Failed to delete game:", err);
+        }
       };
       cleanup();
     }
   }, [game, user.uid, gameId, navigate]);
 
-  const handleGoToMenu = () => navigate("/dashboard");
+  const handleGoToMenu = async () => {
+    await updateDoc(doc(db, "games", gameId), {
+      [`leftToMenu.${user.uid}`]: true,
+    });
+    navigate("/dashboard");
+  };
 
   // ✅ UI code remains unchanged
   // (cutting below for brevity, already correct)
@@ -329,8 +347,16 @@ const Game = () => {
       )}
 
       {message && (
-        <div className="text-center text-lg font-semibold text-red-600 mt-4 uppercase">
-          {message}
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-center text-lg font-semibold text-red-600 mt-4 uppercase">
+            {message}
+          </div>
+          <button
+            onClick={handleGoToMenu}
+            className="shadow-lg backdrop-blur-sm text-gray-600 px-4 py-2 rounded uppercase mt-6 font-semibold"
+          >
+            Menu
+          </button>
         </div>
       )}
 
@@ -338,14 +364,14 @@ const Game = () => {
         <div className="mt-6 flex flex-col items-center gap-4">
           <button
             onClick={handleGoToMenu}
-            className="shadow-lg backdrop-blur-sm text-gray-600 px-4 py-2 rounded uppercase"
+            className="shadow-lg backdrop-blur-sm text-gray-600 px-4 py-2 rounded uppercase font-semibold"
           >
             Menu
           </button>
           {!rematchRequested && (
             <button
               onClick={handleRematch}
-              className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase"
+              className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase font-semibold"
             >
               Play Again
             </button>

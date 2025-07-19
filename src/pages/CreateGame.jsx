@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { setDoc, doc, onSnapshot, getDoc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { v4 as uuidv4 } from "uuid";
+import { deleteDoc } from "firebase/firestore";
 
 const CreateGame = () => {
   const [gameId, setGameId] = useState("");
