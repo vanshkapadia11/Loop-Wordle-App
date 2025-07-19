@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { useRef } from "react";
 import {
   doc,
   updateDoc,
@@ -34,6 +35,22 @@ const Game = () => {
   const [currentGuess, setCurrentGuess] = useState("");
   const [message, setMessage] = useState("");
   const [gameOver, setGameOver] = useState(false);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input) {
+      input.focus(); // focus on mount
+    }
+
+    const handleTouch = () => {
+      input?.focus(); // refocus on mobile touch
+    };
+
+    window.addEventListener("touchstart", handleTouch);
+    return () => {
+      window.removeEventListener("touchstart", handleTouch);
+    };
+  }, []);
 
   // ✅ Reset state when new gameId comes in (important for rematch)
   useEffect(() => {
@@ -191,6 +208,16 @@ const Game = () => {
   // ...
   return (
     <div className="p-6 max-w-3xl mx-auto min-h-screen">
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="text"
+        autoCapitalize="none"
+        autoComplete="off"
+        autoCorrect="off"
+        className="absolute opacity-0 pointer-events-none w-0 h-0"
+        onChange={() => {}}
+      />
       <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
         Multiplayer Wordle
       </h2>

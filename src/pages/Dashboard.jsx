@@ -9,7 +9,7 @@ const Dashboard = () => {
   return (
     <>
       <Navbar />
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 pt-20">
+      <div className="flex flex-col items-center justify-center min-h-screen px-4 pt-20">
         <h1 className="text-4xl font-bold mb-6 text-gray-800 uppercase">
           🎯 Multiplayer Wordle
         </h1>
