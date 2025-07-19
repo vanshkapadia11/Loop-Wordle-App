@@ -368,16 +368,36 @@ const Game = () => {
           >
             Menu
           </button>
-          {!rematchRequested && (
-            <button
-              onClick={handleRematch}
-              className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase font-semibold"
-            >
-              Play Again
-            </button>
-          )}
+
+          {(() => {
+            const opponentId = game?.players?.find((id) => id !== user.uid);
+            const opponentLeft =
+              game?.leftToMenu && game.leftToMenu[opponentId];
+
+            if (!rematchRequested && !opponentLeft) {
+              return (
+                <button
+                  onClick={handleRematch}
+                  className="shadow-lg backdrop-blur-sm text-green-600 px-4 py-2 rounded uppercase font-semibold"
+                >
+                  Play Again
+                </button>
+              );
+            }
+
+            if (opponentLeft) {
+              return (
+                <div className="text-sm text-gray-500 mt-2 font-semibold uppercase">
+                  Opponent left to menu.
+                </div>
+              );
+            }
+
+            return null;
+          })()}
         </div>
       )}
+
       {rematchRequested &&
         !game?.rematchRequest?.[
           game.players?.find((id) => id !== user.uid)
