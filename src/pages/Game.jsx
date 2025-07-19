@@ -218,6 +218,19 @@ const Game = () => {
         autoCorrect="off"
         className="absolute opacity-0 pointer-events-none w-0 h-0"
         onChange={() => {}}
+        onInput={(e) => {
+          const key = e.nativeEvent.data?.toLowerCase();
+
+          if (!key || isGameOver) return;
+
+          if (key === "enter") {
+            handleSubmitGuess();
+          } else if (key === "backspace") {
+            setCurrentGuess((prev) => prev.slice(0, -1));
+          } else if (/^[a-z]$/.test(key) && currentGuess.length < 5) {
+            setCurrentGuess((prev) => prev + key);
+          }
+        }}
       />
       <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
         Multiplayer Wordle
