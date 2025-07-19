@@ -186,28 +186,42 @@ const Game = () => {
       (uid) => game.rematchRequest[uid] === true
     );
 
-    if (bothAccepted) {
-      const createNewGame = async () => {
-        const newGameId = uuidv4();
-        const newWord = await getRandomWord();
-        await setDoc(doc(db, "games", newGameId), {
-          id: newGameId,
-          word: newWord,
-          players: game.players,
-          guesses: {},
-          status: "in-progress",
-          createdAt: Timestamp.now(),
-        });
+    if (bothAccepted && !game.nextGameId) {
+      // 🧠 Only ONE player should create the new game (based on user.uid)
+      if (user.uid === game.players[0]) {
+        const createNewGame = async () => {
+          const newGameId = uuidv4();
+          const newWord = await getRandomWord();
+          const newGameRef = doc(db, "games", newGameId);
 
-        // ✅ IMPORTANT: Navigate AFTER short delay to avoid state bugs
-        setTimeout(() => {
-          navigate(`/game/${newGameId}`);
-        }, 100);
-      };
+          await setDoc(newGameRef, {
+            id: newGameId,
+            word: newWord,
+            players: game.players,
+            guesses: {},
+            status: "in-progress",
+            createdAt: Timestamp.now(),
+            rematchRequest: {}, // 🆕 added to support rematch
+            nextGameId: null, // 🆕 added to sync future rematch
+          });
 
-      createNewGame();
+          // Store new game ID in current game so both players can read it
+          await updateDoc(doc(db, "games", gameId), {
+            nextGameId: newGameId,
+          });
+        };
+
+        createNewGame();
+      }
     }
-  }, [game]);
+
+    // ✅ Now, whether this player created it or not — navigate if available
+    if (game?.nextGameId) {
+      setTimeout(() => {
+        navigate(`/game/${game.nextGameId}`);
+      }, 100);
+    }
+  }, [game, user.uid, gameId, navigate]);
 
   const handleGoToMenu = () => navigate("/dashboard");
 
