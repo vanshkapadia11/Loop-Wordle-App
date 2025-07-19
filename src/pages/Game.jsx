@@ -217,7 +217,14 @@ const Game = () => {
 
     // ✅ Now, whether this player created it or not — navigate if available
     if (game?.nextGameId) {
-      setTimeout(() => {
+      setTimeout(async () => {
+        // 👇 Reset rematchRequest and nextGameId in current game before navigating
+        await updateDoc(doc(db, "games", gameId), {
+          rematchRequest: {},
+          nextGameId: null,
+        });
+
+        // Then navigate
         navigate(`/game/${game.nextGameId}`);
       }, 100);
     }
