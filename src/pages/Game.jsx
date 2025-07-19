@@ -26,6 +26,7 @@ const Game = () => {
   const [rematchRequested, setRematchRequested] = useState(false);
   const [showRematchPrompt, setShowRematchPrompt] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const hasNavigated = useRef(false); // Prevent navigating multiple times
   const inputRef = useRef(null);
 
   const { gameId } = useParams();
@@ -69,6 +70,12 @@ const Game = () => {
     setRematchRequested(false);
     setShowRematchPrompt(false);
     setCountdown(10);
+    hasNavigated.current = false; // ✅ Add this
+    console.log("Rematch check:", {
+      rematchRequest: game?.rematchRequest,
+      nextGameId: game?.nextGameId,
+      hasNavigated: hasNavigated.current,
+    });
   }, [gameId]);
 
   // ✅ Game snapshot listener
@@ -182,51 +189,64 @@ const Game = () => {
   useEffect(() => {
     if (!game?.rematchRequest || !game.players) return;
 
-    const bothAccepted = game.players.every(
-      (uid) => game.rematchRequest[uid] === true
+    const bothAccepted = game.players.every((uid) => game.rematchRequest[uid]);
+
+    const bothNavigated = game.players.every(
+      (uid) => game.navigatedPlayers?.[uid]
     );
 
-    if (bothAccepted && !game.nextGameId) {
-      // 🧠 Only ONE player should create the new game (based on user.uid)
-      if (user.uid === game.players[0]) {
-        const createNewGame = async () => {
-          const newGameId = uuidv4();
-          const newWord = await getRandomWord();
-          const newGameRef = doc(db, "games", newGameId);
+    // ✅ One player creates the new game if both accepted
+    if (bothAccepted && !game.nextGameId && user.uid === game.players[0]) {
+      const createNewGame = async () => {
+        const newGameId = uuidv4();
+        const newWord = await getRandomWord();
+        const newGameRef = doc(db, "games", newGameId);
 
-          await setDoc(newGameRef, {
-            id: newGameId,
-            word: newWord,
-            players: game.players,
-            guesses: {},
-            status: "in-progress",
-            createdAt: Timestamp.now(),
-            rematchRequest: {}, // 🆕 added to support rematch
-            nextGameId: null, // 🆕 added to sync future rematch
-          });
-
-          // Store new game ID in current game so both players can read it
-          await updateDoc(doc(db, "games", gameId), {
-            nextGameId: newGameId,
-          });
-        };
-
-        createNewGame();
-      }
-    }
-
-    // ✅ Now, whether this player created it or not — navigate if available
-    if (game?.nextGameId) {
-      setTimeout(async () => {
-        // 👇 Reset rematchRequest and nextGameId in current game before navigating
-        await updateDoc(doc(db, "games", gameId), {
+        await setDoc(newGameRef, {
+          id: newGameId,
+          word: newWord,
+          players: game.players,
+          guesses: {},
+          status: "in-progress",
+          createdAt: Timestamp.now(),
           rematchRequest: {},
           nextGameId: null,
         });
 
-        // Then navigate
+        await updateDoc(doc(db, "games", gameId), {
+          nextGameId: newGameId,
+          navigatedPlayers: {},
+        });
+      };
+
+      createNewGame();
+    }
+
+    // ✅ Each player navigates ONCE
+    if (game?.nextGameId && !hasNavigated.current) {
+      hasNavigated.current = true;
+
+      // Record navigation
+      updateDoc(doc(db, "games", gameId), {
+        [`navigatedPlayers.${user.uid}`]: true,
+      });
+
+      // Navigate
+      setTimeout(() => {
         navigate(`/game/${game.nextGameId}`);
-      }, 100);
+      }, 200);
+    }
+
+    // ✅ Clean up ONLY if both navigated
+    if (bothNavigated && user.uid === game.players[0]) {
+      const cleanup = async () => {
+        await updateDoc(doc(db, "games", gameId), {
+          rematchRequest: {},
+          nextGameId: null,
+          navigatedPlayers: {},
+        });
+      };
+      cleanup();
     }
   }, [game, user.uid, gameId, navigate]);
 
@@ -332,7 +352,14 @@ const Game = () => {
           )}
         </div>
       )}
-
+      {rematchRequested &&
+        !game?.rematchRequest?.[
+          game.players?.find((id) => id !== user.uid)
+        ] && (
+          <div className="text-sm text-gray-500 mt-2">
+            Waiting for opponent to accept rematch...
+          </div>
+        )}
       {showRematchPrompt && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow max-w-sm text-center">
